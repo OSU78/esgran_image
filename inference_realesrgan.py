@@ -111,9 +111,9 @@ def main():
         dni_weight=dni_weight,
         model=model,
         tile=args.tile,
-        tile_pad=args.tile_pad,
-        pre_pad=args.pre_pad,
-        half=not args.fp32,
+        tile_pad=10,
+        pre_pad=0,
+        half=False,
         gpu_id=args.gpu_id)
 
     if args.face_enhance:  # Use GFPGAN for face enhancement
@@ -131,6 +131,7 @@ def main():
     else:
         paths = sorted(glob.glob(os.path.join(args.input, '*')))
 
+    print('Enumerate : ',enumerate(paths))
     for idx, path in enumerate(paths):
         imgname, extension = os.path.splitext(os.path.basename(path))
         print('Testing', idx, imgname)
