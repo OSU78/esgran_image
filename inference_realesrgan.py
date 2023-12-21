@@ -9,6 +9,102 @@ from realesrgan import RealESRGANer
 from realesrgan.archs.srvgg_arch import SRVGGNetCompact
 
 
+
+
+
+
+import os
+import json
+from datetime import datetime, timedelta
+import pytz
+import random
+# from magicGPTS import GPTDetailsScraper
+import pytz
+import boto3
+import datetime
+from botocore.exceptions import NoCredentialsError
+from io import BytesIO
+import re
+import base64
+# #Prod
+ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
+SECRET_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+REGION_NAME= 'eu-north-1'
+BUCKET_NAME = 'gptstoresbucket'
+
+#------------------------------------------------------------------#
+
+
+#---------------------------------------------------------------------#
+
+# Créer un client Amazon S3 avec l'option de configuration pour le protocole d'authentification
+s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY, region_name=REGION_NAME)
+
+def upload_file_to_s3(file_path, bucket_name):
+    """Envoyer un fichier sur Amazon S3"""
+    file_name = generate_file_id(file_path)
+    try:
+        s3.upload_file(file_path, bucket_name, file_name)
+        print(f"{file_name} a été uploadé avec succès sur Amazon S3")
+        return file_name
+    except FileNotFoundError:
+        print(f"{file_path} n'a pas été trouvé")
+    except NoCredentialsError:
+        print("Clés d'accès invalides")
+
+def generate_file_id(file_path):
+    """Générer un id unique pour chaque fichier"""
+    file_name = os.path.basename(file_path)
+    now = datetime.datetime.now()
+    timestamp = now.strftime("%H_%M_%S")
+    return f"{os.path.splitext(file_name)[0]}_{timestamp}{os.path.splitext(file_name)[1]}"
+
+
+def generate_public_url(bucket_name, file_name):
+    """Obtenir l'URL publique d'un fichier sur Amazon S3"""
+    url = f"https://{bucket_name}.s3.{REGION_NAME}.amazonaws.com/{file_name}"
+    print(f"URL publique de {file_name}: {url}")
+    return url
+
+
+
+
+
+def upload_logo(file_path, name="temp_logo", bucket_name=BUCKET_NAME, video_id=0):
+    # Vérifier si le fichier est un PNG
+    if not file_path.lower().endswith('.png'):
+        raise ValueError("Le fichier doit être au format PNG")
+
+    # Créer un nom de fichier unique si nécessaire
+    temp_file_path = name + ".png"
+
+    # Copier le fichier PNG vers le chemin temporaire (si nécessaire)
+    if file_path != temp_file_path:
+        shutil.copyfile(file_path, temp_file_path)
+
+    # Envoyer le fichier sur Amazon S3
+    file_name = upload_file_to_s3(temp_file_path, bucket_name)
+
+    # Supprimer le fichier temporaire après l'envoi
+    if file_path != temp_file_path:
+        os.remove(temp_file_path)
+    
+    print("------S3 BUCKET SUCCESS------")
+
+    # Retourner l'URL de l'image
+    return generate_public_url(bucket_name, file_name)
+
+
+
+
+
+
+
+
+
+#--------------------------------------------------------------#
+
+
 def main():
     """Inference demo for Real-ESRGAN.
     """
@@ -161,6 +257,7 @@ def main():
             else:
                 save_path = os.path.join(args.output, f'{imgname}_{args.suffix}.{extension}')
             cv2.imwrite(save_path, output)
+            save_path = upload_logo(save_path)
             print("Save Path :",save_path)
 
 
