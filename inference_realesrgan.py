@@ -16,10 +16,8 @@ from realesrgan.archs.srvgg_arch import SRVGGNetCompact
 import os
 import json
 from datetime import datetime, timedelta
-import pytz
 import random
 # from magicGPTS import GPTDetailsScraper
-import pytz
 import boto3
 import datetime
 from botocore.exceptions import NoCredentialsError
