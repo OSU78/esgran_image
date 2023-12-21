@@ -8,12 +8,7 @@ from basicsr.utils.download_util import load_file_from_url
 from realesrgan import RealESRGANer
 from realesrgan.archs.srvgg_arch import SRVGGNetCompact
 
-
-
-
-
-
-import os
+import shutil
 import json
 from datetime import datetime, timedelta
 import random
